@@ -38,13 +38,15 @@ export function PremiumProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    init();
-
-    // Listen for changes
+    // Listen for changes — register listener before init() so we don't miss
+    // updates that occur during initialization
     const listener = (info: CustomerInfo) => {
       setIsPremium(info.entitlements.active['premium'] !== undefined);
     };
     Purchases.addCustomerInfoUpdateListener(listener);
+
+    init();
+
     return () => { Purchases.removeCustomerInfoUpdateListener(listener); };
   }, []);
 

@@ -35,14 +35,14 @@ export function useBeachDetail(beach: EnrichedBeach | null): UseBeachDetailResul
           ...d,
           seaTemp: beach!.seaTemp?.temperature ?? null,
         }));
-        setForecast(days);
+        if (!cancelled) setForecast(days);
       }
 
-      if (wqResult.status === 'fulfilled') {
+      if (!cancelled && wqResult.status === 'fulfilled') {
         setWaterQuality(wqResult.value);
       }
 
-      setLoading(false);
+      if (!cancelled) setLoading(false);
     }
 
     loadDetail();
