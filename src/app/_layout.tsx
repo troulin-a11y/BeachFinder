@@ -1,16 +1,32 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import React from 'react';
-import { useColorScheme } from 'react-native';
+import '../i18n';
+import React, { useEffect, useState } from 'react';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { PremiumProvider } from '../context/PremiumContext';
+import { AdProvider } from '../context/AdContext';
+import { localCache } from '../lib/cache';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+export default function RootLayout() {
+  const [ready, setReady] = useState(false);
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    localCache.init().then(() => setReady(true));
+  }, []);
+
+  if (!ready) return null;
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <PremiumProvider>
+      <AdProvider>
+        <StatusBar style="light" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="beach/[id]"
+            options={{ presentation: 'card', animation: 'slide_from_right' }}
+          />
+        </Stack>
+      </AdProvider>
+    </PremiumProvider>
   );
 }
