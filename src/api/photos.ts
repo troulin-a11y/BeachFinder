@@ -5,6 +5,10 @@ import type { PhotoData } from '../types';
 const FLICKR_KEY = process.env.EXPO_PUBLIC_FLICKR_API_KEY;
 const UNSPLASH_KEY = process.env.EXPO_PUBLIC_UNSPLASH_ACCESS_KEY;
 
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
 interface WikimediaGeoResult {
   pageid: number;
   title: string;
@@ -12,6 +16,10 @@ interface WikimediaGeoResult {
   lon: number;
   dist: number;
 }
+
+// ---------------------------------------------------------------------------
+// Parsers
+// ---------------------------------------------------------------------------
 
 export function parseWikimediaPhotos(response: any): WikimediaGeoResult[] {
   return response?.query?.geosearch ?? [];
@@ -33,6 +41,10 @@ export function buildFallbackPhoto(): PhotoData {
     isFallback: true,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Photo source cascade helpers
+// ---------------------------------------------------------------------------
 
 async function tryWikimedia(lat: number, lng: number): Promise<PhotoData | null> {
   try {
@@ -115,6 +127,10 @@ async function tryUnsplash(beachName: string): Promise<PhotoData | null> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Main fetch (cache -> cascade -> fallback)
+// ---------------------------------------------------------------------------
+
 export async function fetchBeachPhoto(
   osmId: string,
   lat: number,
@@ -122,19 +138,23 @@ export async function fetchBeachPhoto(
   beachName: string,
 ): Promise<PhotoData> {
   // 1. Check Supabase cache
-  const { data: cached } = await supabase
-    .from('photos_cache')
-    .select('url, source, attribution')
-    .eq('osm_id', osmId)
-    .single();
+  try {
+    const { data: cached } = await supabase
+      .from('photos_cache')
+      .select('url, source, attribution')
+      .eq('osm_id', osmId)
+      .single();
 
-  if (cached) {
-    return {
-      url: cached.url,
-      source: cached.source as PhotoData['source'],
-      attribution: cached.attribution,
-      isFallback: cached.source === 'fallback',
-    };
+    if (cached) {
+      return {
+        url: cached.url,
+        source: cached.source as PhotoData['source'],
+        attribution: cached.attribution,
+        isFallback: cached.source === 'fallback',
+      };
+    }
+  } catch {
+    // Supabase unavailable — continue to cascade
   }
 
   // 2. Cascade: Wikimedia -> Flickr -> Unsplash -> Fallback
@@ -144,14 +164,18 @@ export async function fetchBeachPhoto(
     (await tryUnsplash(beachName)) ??
     buildFallbackPhoto();
 
-  // 3. Cache result in Supabase
+  // 3. Cache result in Supabase (fire-and-forget)
   if (photo.url) {
-    await supabase.from('photos_cache').insert({
-      osm_id: osmId,
-      url: photo.url,
-      source: photo.source,
-      attribution: photo.attribution,
-    });
+    try {
+      await supabase.from('photos_cache').insert({
+        osm_id: osmId,
+        url: photo.url,
+        source: photo.source,
+        attribution: photo.attribution,
+      });
+    } catch {
+      // Cache write failure is non-critical
+    }
   }
 
   return photo;

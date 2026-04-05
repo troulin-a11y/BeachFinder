@@ -3,6 +3,10 @@ import { supabase } from '../lib/supabase';
 import { isUSCoast } from './seaTemp';
 import type { WaterQualityData } from '../types';
 
+// ---------------------------------------------------------------------------
+// Types & helpers
+// ---------------------------------------------------------------------------
+
 type Classification = 'excellent' | 'good' | 'sufficient' | 'poor';
 
 export function classificationToGrade(raw: string): Classification | null {
@@ -14,6 +18,10 @@ export function classificationToGrade(raw: string): Classification | null {
   };
   return map[raw.toLowerCase()] ?? null;
 }
+
+// ---------------------------------------------------------------------------
+// Parsers
+// ---------------------------------------------------------------------------
 
 export function parseEEAResponse(response: any): WaterQualityData | null {
   const results = response?.results ?? [];
@@ -29,7 +37,12 @@ export function parseEEAResponse(response: any): WaterQualityData | null {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Data sources
+// ---------------------------------------------------------------------------
+
 async function fetchEEAWaterQuality(lat: number, lng: number): Promise<WaterQualityData | null> {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
   try {
     // EEA DISCODATA query for nearest bathing water site
     const sql = encodeURIComponent(
@@ -66,27 +79,37 @@ async function fetchEPAWaterQuality(lat: number, lng: number): Promise<WaterQual
   }
 }
 
-export async function fetchWaterQuality(lat: number, lng: number): Promise<WaterQualityData | null> {
-  // Check Supabase cache (annual data)
-  const { data: cached } = await supabase
-    .from('water_quality')
-    .select('*')
-    .gte('lat', lat - 0.05)
-    .lte('lat', lat + 0.05)
-    .gte('lng', lng - 0.05)
-    .lte('lng', lng + 0.05)
-    .order('year', { ascending: false })
-    .limit(1)
-    .single();
+// ---------------------------------------------------------------------------
+// Main fetch (cache -> source -> store)
+// ---------------------------------------------------------------------------
 
-  if (cached && cached.year >= new Date().getFullYear() - 1) {
-    return {
-      classification: cached.classification as WaterQualityData['classification'],
-      ecoli: cached.ecoli,
-      enterococci: cached.enterococci,
-      source: cached.source as 'eea' | 'epa',
-      year: cached.year,
-    };
+export async function fetchWaterQuality(lat: number, lng: number): Promise<WaterQualityData | null> {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+  // Check Supabase cache (annual data)
+  try {
+    const { data: cached } = await supabase
+      .from('water_quality')
+      .select('*')
+      .gte('lat', lat - 0.05)
+      .lte('lat', lat + 0.05)
+      .gte('lng', lng - 0.05)
+      .lte('lng', lng + 0.05)
+      .order('year', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (cached && cached.year >= new Date().getFullYear() - 1) {
+      return {
+        classification: cached.classification as WaterQualityData['classification'],
+        ecoli: cached.ecoli,
+        enterococci: cached.enterococci,
+        source: cached.source as 'eea' | 'epa',
+        year: cached.year,
+      };
+    }
+  } catch {
+    // Supabase unavailable — continue to fresh fetch
   }
 
   // Fetch fresh data
@@ -94,31 +117,43 @@ export async function fetchWaterQuality(lat: number, lng: number): Promise<Water
     ? await fetchEPAWaterQuality(lat, lng)
     : await fetchEEAWaterQuality(lat, lng);
 
-  // Cache result
+  // Cache result (fire-and-forget)
   if (result) {
-    await supabase.from('water_quality').insert({
-      lat, lng,
-      classification: result.classification,
-      ecoli: result.ecoli,
-      enterococci: result.enterococci,
-      source: result.source,
-      year: result.year,
-    });
+    try {
+      await supabase.from('water_quality').insert({
+        lat, lng,
+        classification: result.classification,
+        ecoli: result.ecoli,
+        enterococci: result.enterococci,
+        source: result.source,
+        year: result.year,
+      });
+    } catch {
+      // Cache write failure is non-critical
+    }
   }
 
   return result;
 }
 
-export async function checkBlueFlag(osmId: string, lat: number, lng: number): Promise<boolean> {
-  const { data } = await supabase
-    .from('blue_flags')
-    .select('id')
-    .gte('lat', lat - 0.01)
-    .lte('lat', lat + 0.01)
-    .gte('lng', lng - 0.01)
-    .lte('lng', lng + 0.01)
-    .limit(1)
-    .single();
+// ---------------------------------------------------------------------------
+// Blue Flag lookup
+// ---------------------------------------------------------------------------
 
-  return data !== null;
+export async function checkBlueFlag(osmId: string, lat: number, lng: number): Promise<boolean> {
+  try {
+    const { data } = await supabase
+      .from('blue_flags')
+      .select('id')
+      .gte('lat', lat - 0.01)
+      .lte('lat', lat + 0.01)
+      .gte('lng', lng - 0.01)
+      .lte('lng', lng + 0.01)
+      .limit(1)
+      .single();
+
+    return data !== null;
+  } catch {
+    return false;
+  }
 }
