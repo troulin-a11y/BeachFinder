@@ -40,13 +40,19 @@
     "sortSafety": "Safety"
   },
   "search": {
+    "title": "Search",
     "placeholder": "Search for a beach or city...",
     "recentSearches": "Recent searches",
     "clearHistory": "Clear history",
     "noResults": "No results",
     "noResultsDesc": "No beach matches your search.",
     "searching": "Searching...",
-    "filters": "Filters",
+    "filters": {
+      "blueFlag": "Blue Flag",
+      "seaTemp": "Sea ≥ 20°C",
+      "lowWind": "Low wind",
+      "excellentWater": "Excellent water"
+    },
     "applyFilters": "Apply filters",
     "resetFilters": "Reset",
     "filterBlueFlag": "Blue Flag",
@@ -72,8 +78,11 @@
     "languageFr": "Français",
     "languageEn": "English",
     "units": "Units",
+    "metric": "Metric",
     "unitMetric": "Metric (°C, km/h)",
     "unitImperial": "Imperial (°F, mph)",
+    "theme": "Theme",
+    "themeAuto": "Auto",
     "notifications": "Notifications",
     "notificationsDesc": "Receive weather alerts for your favorite beaches",
     "privacy": "Privacy",
@@ -86,11 +95,14 @@
     "premium": "Premium",
     "premiumDesc": "Access all features without ads",
     "restorePurchases": "Restore purchases",
+    "manageSub": "Manage subscription",
     "clearCache": "Clear cache",
     "cacheClearedSuccess": "Cache cleared successfully"
   },
   "detail": {
     "weather": "Weather",
+    "sea": "Sea",
+    "air": "Air",
     "seaTemp": "Sea temperature",
     "forecast": "Forecast",
     "safety": "Safety",
@@ -116,7 +128,9 @@
     "surface": "Surface",
     "surfaceSand": "Sand",
     "surfacePebble": "Pebble",
-    "surfaceRock": "Rock"
+    "surfaceRock": "Rock",
+    "blueFlag": "Blue Flag",
+    "blueFlagDesc": "This beach has been awarded the Blue Flag label, an international eco-label for water quality and environmental standards."
   },
   "safety": {
     "title": "Safety",
@@ -151,11 +165,12 @@
     "parking": "Parking",
     "accessible": "Wheelchair access",
     "lifeguard": "Lifeguard",
+    "dog": "Dogs allowed",
+    "dogLeashed": "Dogs on leash",
     "available": "Available",
     "unavailable": "Unavailable",
     "blueFlag": "Blue Flag",
     "dogAllowed": "Dogs allowed",
-    "dogLeashed": "Dogs on leash",
     "dogForbidden": "Dogs forbidden"
   },
   "photo": {
@@ -165,7 +180,8 @@
     "flickr": "Flickr",
     "unsplash": "Unsplash",
     "fallback": "Default image",
-    "viewOriginal": "View original"
+    "viewOriginal": "View original",
+    "nonContractuelle": "Illustrative photo"
   },
   "premium": {
     "title": "BeachFinder Premium",
@@ -186,15 +202,24 @@
     "purchaseSuccess": "Purchase successful! Welcome to Premium.",
     "purchaseError": "Purchase error. Please try again.",
     "restoreSuccess": "Purchases restored successfully.",
-    "restoreNotFound": "No purchases to restore."
+    "restoreNotFound": "No purchases to restore.",
+    "restore": "Restore purchases"
   },
   "ads": {
     "removeAds": "Remove ads",
-    "removeAdsDesc": "Upgrade to Premium for an ad-free experience."
+    "removeAdsDesc": "Upgrade to Premium for an ad-free experience.",
+    "watchToUnlock": "Watch a video to unlock",
+    "orPremium": "or go Premium"
+  },
+  "common": {
+    "back": "Back"
   },
   "errors": {
     "generic": "An unexpected error occurred.",
     "network": "Connection error. Check your network.",
+    "noGps": "Unable to get your location. Please enable location services.",
+    "noData": "Data unavailable",
+    "offline": "You are offline. Data may not be up to date.",
     "location": "Unable to get your location.",
     "locationPermission": "Location permission denied.",
     "beachLoad": "Unable to load beaches.",

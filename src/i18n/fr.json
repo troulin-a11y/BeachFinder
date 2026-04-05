@@ -40,13 +40,19 @@
     "sortSafety": "Sécurité"
   },
   "search": {
+    "title": "Recherche",
     "placeholder": "Rechercher une plage ou une ville...",
     "recentSearches": "Recherches récentes",
     "clearHistory": "Effacer l'historique",
     "noResults": "Aucun résultat",
     "noResultsDesc": "Aucune plage ne correspond à votre recherche.",
     "searching": "Recherche en cours...",
-    "filters": "Filtres",
+    "filters": {
+      "blueFlag": "Pavillon Bleu",
+      "seaTemp": "Eau ≥ 20°C",
+      "lowWind": "Vent faible",
+      "excellentWater": "Eau excellente"
+    },
     "applyFilters": "Appliquer les filtres",
     "resetFilters": "Réinitialiser",
     "filterBlueFlag": "Pavillon Bleu",
@@ -72,8 +78,11 @@
     "languageFr": "Français",
     "languageEn": "English",
     "units": "Unités",
+    "metric": "Métrique",
     "unitMetric": "Métrique (°C, km/h)",
     "unitImperial": "Impérial (°F, mph)",
+    "theme": "Thème",
+    "themeAuto": "Automatique",
     "notifications": "Notifications",
     "notificationsDesc": "Recevoir des alertes météo pour vos plages favorites",
     "privacy": "Confidentialité",
@@ -86,11 +95,14 @@
     "premium": "Premium",
     "premiumDesc": "Accédez à toutes les fonctionnalités sans publicité",
     "restorePurchases": "Restaurer les achats",
+    "manageSub": "Gérer l'abonnement",
     "clearCache": "Vider le cache",
     "cacheClearedSuccess": "Cache vidé avec succès"
   },
   "detail": {
     "weather": "Météo",
+    "sea": "Mer",
+    "air": "Air",
     "seaTemp": "Température de la mer",
     "forecast": "Prévisions",
     "safety": "Sécurité",
@@ -116,7 +128,9 @@
     "surface": "Revêtement",
     "surfaceSand": "Sable",
     "surfacePebble": "Galets",
-    "surfaceRock": "Rochers"
+    "surfaceRock": "Rochers",
+    "blueFlag": "Pavillon Bleu",
+    "blueFlagDesc": "Cette plage a obtenu le label Pavillon Bleu, un écolabel international décerné pour la qualité de son eau et de son environnement."
   },
   "safety": {
     "title": "Sécurité",
@@ -151,11 +165,12 @@
     "parking": "Parking",
     "accessible": "Accès PMR",
     "lifeguard": "Surveillance",
+    "dog": "Chiens autorisés",
+    "dogLeashed": "Chiens en laisse",
     "available": "Disponible",
     "unavailable": "Indisponible",
     "blueFlag": "Pavillon Bleu",
     "dogAllowed": "Chiens autorisés",
-    "dogLeashed": "Chiens en laisse",
     "dogForbidden": "Chiens interdits"
   },
   "photo": {
@@ -165,7 +180,8 @@
     "flickr": "Flickr",
     "unsplash": "Unsplash",
     "fallback": "Image par défaut",
-    "viewOriginal": "Voir l'original"
+    "viewOriginal": "Voir l'original",
+    "nonContractuelle": "Photo non contractuelle"
   },
   "premium": {
     "title": "BeachFinder Premium",
@@ -186,15 +202,24 @@
     "purchaseSuccess": "Achat réussi ! Bienvenue dans Premium.",
     "purchaseError": "Erreur lors de l'achat. Veuillez réessayer.",
     "restoreSuccess": "Achats restaurés avec succès.",
-    "restoreNotFound": "Aucun achat à restaurer."
+    "restoreNotFound": "Aucun achat à restaurer.",
+    "restore": "Restaurer les achats"
   },
   "ads": {
     "removeAds": "Supprimer les publicités",
-    "removeAdsDesc": "Passez à Premium pour une expérience sans publicité."
+    "removeAdsDesc": "Passez à Premium pour une expérience sans publicité.",
+    "watchToUnlock": "Regarder une vidéo pour débloquer",
+    "orPremium": "ou passer Premium"
+  },
+  "common": {
+    "back": "Retour"
   },
   "errors": {
     "generic": "Une erreur inattendue est survenue.",
     "network": "Erreur de connexion. Vérifiez votre réseau.",
+    "noGps": "Impossible d'obtenir votre position. Veuillez autoriser la localisation.",
+    "noData": "Données indisponibles",
+    "offline": "Vous êtes hors ligne. Les données peuvent ne pas être à jour.",
     "location": "Impossible d'obtenir votre position.",
     "locationPermission": "Permission de localisation refusée.",
     "beachLoad": "Impossible de charger les plages.",
