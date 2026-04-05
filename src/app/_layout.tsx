@@ -25,7 +25,7 @@ function AppContent() {
         onUnlocked={() => setInitialAdShown(true)}
         onGoPremium={() => {
           setInitialAdShown(true);
-          router.push('/(tabs)/settings');
+          router.push('/settings');
         }}
       />
       <Stack screenOptions={{ headerShown: false }}>
