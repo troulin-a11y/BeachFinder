@@ -20,6 +20,8 @@ export function useBeachDetail(beach: EnrichedBeach | null): UseBeachDetailResul
 
     async function loadDetail() {
       setLoading(true);
+      setForecast(null);
+      setWaterQuality(null);
       const { latitude: lat, longitude: lng } = beach!.location;
 
       const [forecastResult, wqResult] = await Promise.allSettled([

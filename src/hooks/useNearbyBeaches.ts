@@ -83,9 +83,10 @@ export function useNearbyBeaches(location: Coordinates | null): UseNearbyBeaches
         setBeaches(initial);
 
         // Enrich in parallel (weather + photo for each beach)
-        const enriched = await Promise.all(
+        // Use Promise.allSettled at outer level so one beach failure doesn't discard all
+        const results = await Promise.allSettled(
           initial.map(async (beach) => {
-            const [weather, seaTemp, photo, amenityData] = await Promise.allSettled([
+            const [weather, seaTemp, photo, amenityData, blueFlagResult] = await Promise.allSettled([
               fetchCurrentWeather(beach.location.latitude, beach.location.longitude),
               fetchSeaTemperature(beach.location.latitude, beach.location.longitude),
               fetchBeachPhoto(
@@ -95,18 +96,16 @@ export function useNearbyBeaches(location: Coordinates | null): UseNearbyBeaches
                 beach.name,
               ),
               fetchBeachAmenities(beach.location.latitude, beach.location.longitude),
+              beach.tags.blueFlag
+                ? Promise.resolve(true)
+                : checkBlueFlag(beach.osmId, beach.location.latitude, beach.location.longitude),
             ]);
 
             const weatherData = weather.status === 'fulfilled' ? weather.value : null;
             const seaTempData = seaTemp.status === 'fulfilled' ? seaTemp.value : null;
             const photoData = photo.status === 'fulfilled' ? photo.value : null;
             const amenities = amenityData.status === 'fulfilled' ? amenityData.value : { amenities: EMPTY_AMENITIES, restaurants: [] };
-
-            // Merge blue flag from Supabase if not in OSM tags
-            let blueFlag = beach.tags.blueFlag;
-            if (!blueFlag) {
-              blueFlag = await checkBlueFlag(beach.osmId, beach.location.latitude, beach.location.longitude);
-            }
+            const blueFlag = blueFlagResult.status === 'fulfilled' ? blueFlagResult.value : beach.tags.blueFlag;
 
             const safety = weatherData
               ? computeSafetyScore(weatherData.windSpeed)
@@ -131,7 +130,14 @@ export function useNearbyBeaches(location: Coordinates | null): UseNearbyBeaches
           }),
         );
 
-        if (!cancelled) setBeaches(enriched);
+        // Merge: keep initial data for beaches whose enrichment failed
+        if (!cancelled) {
+          setBeaches(initial.map((b, i) =>
+            results[i].status === 'fulfilled'
+              ? (results[i] as PromiseFulfilledResult<EnrichedBeach>).value
+              : b,
+          ));
+        }
       } catch (e) {
         if (!cancelled) setError('fetch_error');
       } finally {

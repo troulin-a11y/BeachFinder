@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import Purchases from 'react-native-purchases';
 import type { CustomerInfo } from 'react-native-purchases';
 import { Platform } from 'react-native';
@@ -20,6 +20,8 @@ export function PremiumProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function init() {
       try {
         Purchases.configure({
@@ -30,37 +32,46 @@ export function PremiumProvider({ children }: { children: React.ReactNode }) {
         });
 
         const info: CustomerInfo = await Purchases.getCustomerInfo();
-        setIsPremium(info.entitlements.active['premium'] !== undefined);
+        if (!cancelled) {
+          setIsPremium(info.entitlements.active['premium'] !== undefined);
+        }
       } catch {
-        setIsPremium(false);
+        if (!cancelled) setIsPremium(false);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     // Listen for changes — register listener before init() so we don't miss
     // updates that occur during initialization
     const listener = (info: CustomerInfo) => {
-      setIsPremium(info.entitlements.active['premium'] !== undefined);
+      if (!cancelled) {
+        setIsPremium(info.entitlements.active['premium'] !== undefined);
+      }
     };
     Purchases.addCustomerInfoUpdateListener(listener);
 
     init();
 
-    return () => { Purchases.removeCustomerInfoUpdateListener(listener); };
+    return () => {
+      cancelled = true;
+      Purchases.removeCustomerInfoUpdateListener(listener);
+    };
   }, []);
 
-  const restore = async () => {
+  const restore = useCallback(async () => {
     try {
       const info = await Purchases.restorePurchases();
       setIsPremium(info.entitlements.active['premium'] !== undefined);
     } catch {
       // silently fail
     }
-  };
+  }, []);
+
+  const value = useMemo(() => ({ isPremium, loading, restore }), [isPremium, loading, restore]);
 
   return (
-    <PremiumContext.Provider value={{ isPremium, loading, restore }}>
+    <PremiumContext.Provider value={value}>
       {children}
     </PremiumContext.Provider>
   );
