@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Coordinates, Beach, EnrichedBeach, Amenities } from '../types';
 import { localCache } from '../lib/cache';
-import { CACHE_TTL, SEARCH_RADIUS_M, SEARCH_RADIUS_EXPANDED_M } from '../constants';
+import { CACHE_TTL, CACHE_VERSION, SEARCH_RADIUS_M, SEARCH_RADIUS_EXPANDED_M } from '../constants';
 import { fetchNearbyBeaches, fetchBeachAmenities } from '../api/overpass';
 import { fetchCurrentWeather } from '../api/weather';
 import { fetchSeaTemperature } from '../api/seaTemp';
@@ -38,7 +38,7 @@ export function useNearbyBeaches(location: Coordinates | null): UseNearbyBeaches
 
       try {
         const { latitude: lat, longitude: lng } = location!;
-        const cacheKey = `beaches_${lat.toFixed(2)}_${lng.toFixed(2)}`;
+        const cacheKey = `${CACHE_VERSION}_beaches_${lat.toFixed(2)}_${lng.toFixed(2)}`;
 
         // L2 cache check
         const cachedBeaches = await localCache.get<Beach[]>(cacheKey);

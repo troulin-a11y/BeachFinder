@@ -2,6 +2,7 @@ export const API = {
   OVERPASS_URL: 'https://overpass-api.de/api/interpreter',
   OWM_CURRENT_URL: 'https://api.openweathermap.org/data/2.5/weather',
   OWM_ONECALL_URL: 'https://api.openweathermap.org/data/3.0/onecall',
+  OWM_FORECAST_URL: 'https://api.openweathermap.org/data/2.5/forecast',
   NOAA_COOPS_URL: 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter',
   NOAA_STATIONS_URL: 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json',
   EEA_DISCODATA_URL: 'https://discodata.eea.europa.eu/sql',
@@ -9,6 +10,8 @@ export const API = {
   WIKIMEDIA_API_URL: 'https://commons.wikimedia.org/w/api.php',
   FLICKR_API_URL: 'https://api.flickr.com/services/rest/',
   UNSPLASH_API_URL: 'https://api.unsplash.com',
+  PEXELS_API_URL: 'https://api.pexels.com/v1',
+  PIXABAY_API_URL: 'https://pixabay.com/api',
   CATALONIA_FLAGS_URL: 'https://platges.interior.gencat.cat/api',
 } as const;
 
@@ -21,9 +24,10 @@ export const CACHE_TTL = {
   AMENITIES: 24 * 60 * 60 * 1000,
 } as const;
 
+export const CACHE_VERSION = 'v5';
 export const SEARCH_RADIUS_M = 50_000;
-export const SEARCH_RADIUS_EXPANDED_M = 100_000;
-export const MAX_BEACHES = 20;
+export const SEARCH_RADIUS_EXPANDED_M = 150_000;
+export const MAX_BEACHES = 30;
 export const AMENITY_RADIUS_M = 300;
 
 export const SAFETY_THRESHOLDS = {

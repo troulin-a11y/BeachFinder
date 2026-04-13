@@ -22,10 +22,7 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.beachfinder.app"
     },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
+    "platforms": ["ios", "android"],
     "plugins": [
       "expo-router",
       [
@@ -43,13 +40,6 @@
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "BeachFinder needs your location to find nearby beaches."
-        }
-      ],
-      [
-        "react-native-google-mobile-ads",
-        {
-          "androidAppId": "ca-app-pub-xxxxxxxx~xxxxxxxx",
-          "iosAppId": "ca-app-pub-xxxxxxxx~xxxxxxxx"
         }
       ],
       [

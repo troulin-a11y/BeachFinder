@@ -68,7 +68,7 @@ export interface WaterQualityData {
 
 export interface PhotoData {
   url: string;
-  source: 'wikimedia' | 'flickr' | 'unsplash' | 'fallback';
+  source: 'wikimedia' | 'flickr' | 'unsplash' | 'pexels' | 'pixabay' | 'fallback';
   attribution: string | null;
   isFallback: boolean;
 }

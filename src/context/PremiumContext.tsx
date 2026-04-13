@@ -1,7 +1,19 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import Purchases from 'react-native-purchases';
-import type { CustomerInfo } from 'react-native-purchases';
-import { Platform } from 'react-native';
+
+// ---------------------------------------------------------------------------
+// PremiumContext — tracks whether the user has an active premium subscription.
+//
+// The actual RevenueCat SDK (react-native-purchases) is a native module that
+// requires an EAS Development Build; it CANNOT run in Expo Go or on web.
+//
+// When ready for production:
+//   1. npx expo install react-native-purchases
+//   2. Set real EXPO_PUBLIC_REVENUECAT_*_KEY values in .env
+//   3. Uncomment the RevenueCat integration in src/lib/purchases.ts
+//   4. Import and call it from this context's useEffect
+//
+// Until then, isPremium defaults to false and loading resolves immediately.
+// ---------------------------------------------------------------------------
 
 interface PremiumState {
   isPremium: boolean;
@@ -20,52 +32,14 @@ export function PremiumProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function init() {
-      try {
-        Purchases.configure({
-          apiKey: Platform.select({
-            ios: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY!,
-            android: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY!,
-          })!,
-        });
-
-        const info: CustomerInfo = await Purchases.getCustomerInfo();
-        if (!cancelled) {
-          setIsPremium(info.entitlements.active['premium'] !== undefined);
-        }
-      } catch {
-        if (!cancelled) setIsPremium(false);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    // Listen for changes — register listener before init() so we don't miss
-    // updates that occur during initialization
-    const listener = (info: CustomerInfo) => {
-      if (!cancelled) {
-        setIsPremium(info.entitlements.active['premium'] !== undefined);
-      }
-    };
-    Purchases.addCustomerInfoUpdateListener(listener);
-
-    init();
-
-    return () => {
-      cancelled = true;
-      Purchases.removeCustomerInfoUpdateListener(listener);
-    };
+    // RevenueCat integration is disabled until EAS Build is configured.
+    // See src/lib/purchases.ts for the production implementation.
+    setLoading(false);
   }, []);
 
   const restore = useCallback(async () => {
-    try {
-      const info = await Purchases.restorePurchases();
-      setIsPremium(info.entitlements.active['premium'] !== undefined);
-    } catch {
-      // silently fail
-    }
+    // No-op until RevenueCat is configured.
+    // In production: const info = await Purchases.restorePurchases();
   }, []);
 
   const value = useMemo(() => ({ isPremium, loading, restore }), [isPremium, loading, restore]);

@@ -3,11 +3,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { WaterQualityData } from '../types';
 
-const GRADE_COLORS = {
-  excellent: { bg: '#22c55e', text: '#fff', grade: 'A+' },
-  good: { bg: '#3b82f6', text: '#fff', grade: 'A' },
-  sufficient: { bg: '#f59e0b', text: '#000', grade: 'B' },
-  poor: { bg: '#ef4444', text: '#fff', grade: 'C' },
+const GRADE_STYLES: Record<string, { bg: string; dot: string; text: string; label: string }> = {
+  excellent: { bg: '#d4edda', dot: '#28a745', text: '#155724', label: 'Eau excellente' },
+  good: { bg: '#e0f7ff', dot: '#0077b6', text: '#0077b6', label: 'Eau bonne' },
+  sufficient: { bg: '#fff3cd', dot: '#ffc107', text: '#856404', label: 'Eau correcte' },
+  poor: { bg: '#f8d7da', dot: '#dc3545', text: '#721c24', label: 'Eau insuffisante' },
 };
 
 interface Props {
@@ -19,31 +19,26 @@ export function WaterQualityBadge({ data, detailed = false }: Props) {
   const { t } = useTranslation();
   if (!data || !data.classification) return null;
 
-  const colors = GRADE_COLORS[data.classification];
+  const grade = GRADE_STYLES[data.classification] ?? GRADE_STYLES.good;
 
   if (!detailed) {
     return (
-      <View style={[styles.badge, { backgroundColor: colors.bg }]}>
-        <Text style={[styles.badgeText, { color: colors.text }]}>{colors.grade}</Text>
+      <View style={[styles.dotBadge, { backgroundColor: grade.dot }]}>
+        <Text style={styles.dotText}>
+          {data.classification === 'excellent' ? 'A+' : data.classification === 'good' ? 'A' : data.classification === 'sufficient' ? 'B' : 'C'}
+        </Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.detailContainer}>
-      <View style={[styles.gradeBig, { backgroundColor: colors.bg }]}>
-        <Text style={[styles.gradeText, { color: colors.text }]}>{colors.grade}</Text>
-      </View>
+    <View style={[styles.banner, { backgroundColor: grade.bg }]}>
+      <View style={[styles.dot, { backgroundColor: grade.dot }]} />
       <View style={styles.info}>
-        <Text style={[styles.classification, { color: colors.bg }]}>
-          {t(`quality.${data.classification}`)}
-        </Text>
-        <Text style={styles.source}>
-          Source: {data.source === 'eea' ? 'Agence Europ\u00e9enne Environnement' : 'EPA'} \u00b7 {data.year}
-        </Text>
-        {data.ecoli !== null && (
-          <Text style={styles.detail}>
-            E. coli: {data.ecoli} UFC/100ml \u00b7 Ent\u00e9rocoques: {data.enterococci ?? '\u2014'} UFC/100ml
+        <Text style={[styles.label, { color: grade.text }]}>{grade.label}</Text>
+        {data.source && (
+          <Text style={styles.source}>
+            {data.source === 'eea' ? 'Agence Européenne' : 'EPA'} · {data.year}
           </Text>
         )}
       </View>
@@ -52,13 +47,23 @@ export function WaterQualityBadge({ data, detailed = false }: Props) {
 }
 
 const styles = StyleSheet.create({
-  badge: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  badgeText: { fontSize: 11, fontWeight: '700' },
-  detailContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  gradeBig: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  gradeText: { fontSize: 14, fontWeight: '700' },
+  dotBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dotText: { fontSize: 11, fontWeight: '700', color: '#fff' },
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 10,
+    borderRadius: 12,
+  },
+  dot: { width: 10, height: 10, borderRadius: 5 },
   info: { flex: 1 },
-  classification: { fontSize: 12, fontWeight: '700' },
-  source: { fontSize: 9, color: '#6b8aaa', marginTop: 2 },
-  detail: { fontSize: 10, color: '#a5b4c4', marginTop: 2 },
+  label: { fontSize: 13, fontWeight: '700' },
+  source: { fontSize: 10, color: '#888', marginTop: 2 },
 });

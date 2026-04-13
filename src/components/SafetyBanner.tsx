@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next';
 import type { SafetyData } from '../types';
 
 const COLORS = {
-  green: { bg: '#22c55e22', border: '#22c55e44', text: '#22c55e', flag: '#22c55e' },
-  orange: { bg: '#f59e0b22', border: '#f59e0b44', text: '#f59e0b', flag: '#f59e0b' },
-  red: { bg: '#ef444422', border: '#ef444444', text: '#ef4444', flag: '#ef4444' },
+  green: { bg: '#d4edda', text: '#155724', flag: '#28a745' },
+  orange: { bg: '#fff3cd', text: '#856404', flag: '#ffc107' },
+  red: { bg: '#f8d7da', text: '#721c24', flag: '#dc3545' },
 };
 
 interface Props {
@@ -27,14 +27,14 @@ export function SafetyBanner({ safety, compact = false }: Props) {
   }
 
   return (
-    <View style={[styles.banner, { backgroundColor: colors.bg, borderColor: colors.border }]}>
+    <View style={[styles.banner, { backgroundColor: colors.bg }]}>
       <View style={[styles.flag, { backgroundColor: colors.flag }]} />
       <View style={styles.textContainer}>
         <Text style={[styles.label, { color: colors.text }]}>
           {t(safety.label)}
         </Text>
-        <Text style={styles.reason}>
-          {t(safety.reason)} · {safety.source === 'computed' ? t('safety.sourceComputed') : t('safety.sourceNoaa')}
+        <Text style={[styles.reason, { color: colors.text }]}>
+          {t(safety.reason)}
         </Text>
       </View>
     </View>
@@ -45,15 +45,14 @@ const styles = StyleSheet.create({
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    padding: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
+    gap: 10,
+    padding: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
   },
   flag: { width: 28, height: 18, borderRadius: 3 },
   dot: { width: 10, height: 10, borderRadius: 5 },
   textContainer: { flex: 1 },
-  label: { fontSize: 12, fontWeight: '700' },
-  reason: { fontSize: 9, color: '#6b8aaa', marginTop: 2 },
+  label: { fontSize: 13, fontWeight: '700' },
+  reason: { fontSize: 11, marginTop: 2, opacity: 0.8 },
 });

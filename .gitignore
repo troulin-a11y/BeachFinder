@@ -49,3 +49,18 @@ app-example
 # generated native folders
 /ios
 /android
+
+# BeachFinder scraper data (large files)
+scripts/photos/
+scripts/beach_data/
+scripts/photos_supabase.csv
+scripts/scraper_log.txt
+scripts/scraper_progress.json
+scripts/beaches-data.json
+
+# Claude internal
+.claude/
+MEMORY.md
+.obsidian/
+.searchArea
+"index du chat.html"

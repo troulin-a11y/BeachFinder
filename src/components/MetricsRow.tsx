@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useTranslation } from 'react-i18next';
 import type { WeatherData, SeaTempData } from '../types';
 
 interface Props {
@@ -10,48 +9,81 @@ interface Props {
 }
 
 export function MetricsRow({ weather, seaTemp, compact = false }: Props) {
-  const { t } = useTranslation();
+  if (compact) {
+    return (
+      <View style={styles.compactRow}>
+        <Text style={styles.compactValue}>
+          {seaTemp ? `${Math.round(seaTemp.temperature)}°` : '--'}
+        </Text>
+        <Text style={styles.compactSep}> · </Text>
+        <Text style={styles.compactValue}>
+          {weather ? `${Math.round(weather.windSpeed)} km/h` : '--'}
+        </Text>
+        <Text style={styles.compactSep}> · </Text>
+        <Text style={styles.compactValue}>
+          {weather ? `${Math.round(weather.airTemp)}°` : '--'}
+        </Text>
+      </View>
+    );
+  }
 
   return (
-    <View style={[styles.container, compact && styles.compact]}>
-      <View style={[styles.metric, !compact && styles.metricBox]}>
-        {!compact && <Text style={styles.label}>{t('detail.sea')}</Text>}
-        <Text style={[styles.value, styles.seaTemp]}>
-          {seaTemp ? `${Math.round(seaTemp.temperature)}°C` : t('errors.noData')}
+    <View style={styles.container}>
+      {/* Sea temp */}
+      <View style={styles.condition}>
+        <Text style={styles.icon}>{'\uD83C\uDF0A'}</Text>
+        <Text style={styles.value}>
+          {seaTemp ? `${Math.round(seaTemp.temperature)}°C` : '--'}
+        </Text>
+        <Text style={styles.label}>Mer</Text>
+      </View>
+
+      {/* Wind */}
+      <View style={styles.condition}>
+        <Text style={styles.icon}>{'\uD83D\uDCA8'}</Text>
+        <Text style={styles.value}>
+          {weather ? `${Math.round(weather.windSpeed)} km/h` : '--'}
+        </Text>
+        <Text style={styles.label}>
+          {`Vent${weather?.windDirection ? ` ${weather.windDirection}` : ''}`}
         </Text>
       </View>
-      <View style={[styles.metric, !compact && styles.metricBox]}>
-        {!compact && <Text style={styles.label}>{t('detail.air')}</Text>}
-        <Text style={[styles.value, styles.airTemp]}>
-          {weather ? `${weather.airTemp}°C` : t('errors.noData')}
+
+      {/* Air temp */}
+      <View style={styles.condition}>
+        <Text style={styles.icon}>{'\u2600\uFE0F'}</Text>
+        <Text style={styles.value}>
+          {weather ? `${Math.round(weather.airTemp)}°C` : '--'}
         </Text>
-      </View>
-      <View style={[styles.metric, !compact && styles.metricBox]}>
-        {!compact && <Text style={styles.label}>{t('detail.wind')}</Text>}
-        <Text style={[styles.value, styles.wind]}>
-          {weather ? `${weather.windSpeed} km/h` : t('errors.noData')}
-        </Text>
-        {!compact && weather && (
-          <Text style={styles.subLabel}>{weather.windDirection}</Text>
-        )}
+        <Text style={styles.label}>Air</Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', gap: 8 },
-  compact: { gap: 12 },
-  metric: { flex: 1, alignItems: 'center' },
-  metricBox: {
-    backgroundColor: '#132238',
-    borderRadius: 8,
-    padding: 10,
+  container: {
+    flexDirection: 'row',
+    gap: 8,
   },
-  label: { fontSize: 10, color: '#6b8aaa', textTransform: 'uppercase' },
-  value: { fontSize: 16, fontWeight: '700' },
-  seaTemp: { color: '#06b6d4' },
-  airTemp: { color: '#f59e0b' },
-  wind: { color: '#a5b4c4' },
-  subLabel: { fontSize: 9, color: '#6b8aaa', marginTop: 2 },
+  condition: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#f0f8ff',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+  },
+  icon: { fontSize: 22, marginBottom: 4 },
+  value: { fontSize: 16, fontWeight: '700', color: '#1a1a2e' },
+  label: {
+    fontSize: 10,
+    color: '#888',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 2,
+  },
+  compactRow: { flexDirection: 'row', alignItems: 'center' },
+  compactValue: { fontSize: 12, fontWeight: '600', color: '#555' },
+  compactSep: { fontSize: 12, color: '#ccc' },
 });

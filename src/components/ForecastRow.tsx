@@ -5,11 +5,11 @@ import { usePremium } from '../hooks/usePremium';
 import type { ForecastDay } from '../types';
 
 const WEATHER_ICONS: Record<string, string> = {
-  '01d': '\u2600\uFE0F', '01n': '\uD83C\uDF19', '02d': '\u26C5', '02n': '\u2601\uFE0F',
-  '03d': '\u2601\uFE0F', '03n': '\u2601\uFE0F', '04d': '\u2601\uFE0F', '04n': '\u2601\uFE0F',
-  '09d': '\uD83C\uDF27', '09n': '\uD83C\uDF27', '10d': '\uD83C\uDF26', '10n': '\uD83C\uDF27',
-  '11d': '\u26C8', '11n': '\u26C8', '13d': '\u2744\uFE0F', '13n': '\u2744\uFE0F',
-  '50d': '\uD83C\uDF2B', '50n': '\uD83C\uDF2B',
+  '01d': '☀️', '01n': '🌙', '02d': '⛅', '02n': '☁️',
+  '03d': '☁️', '03n': '☁️', '04d': '☁️', '04n': '☁️',
+  '09d': '🌧', '09n': '🌧', '10d': '🌦', '10n': '🌧',
+  '11d': '⛈', '11n': '⛈', '13d': '❄️', '13n': '❄️',
+  '50d': '🌫', '50n': '🌫',
 };
 
 interface Props {
@@ -23,12 +23,12 @@ export function ForecastRow({ forecast, onUnlockDay }: Props) {
 
   const getDayLabel = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString(undefined, { weekday: 'short' });
+    return date.toLocaleDateString('fr-FR', { weekday: 'short' }).slice(0, 3);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('detail.forecast')}</Text>
+    <View>
+      <Text style={styles.title}>{"📅"} {t('detail.forecast')}</Text>
       <View style={styles.row}>
         {forecast.slice(0, 7).map((day) => {
           const unlocked = isDayUnlocked(day.date);
@@ -42,16 +42,16 @@ export function ForecastRow({ forecast, onUnlockDay }: Props) {
             >
               <Text style={styles.dayLabel}>{getDayLabel(day.date)}</Text>
               <Text style={styles.icon}>
-                {unlocked ? (WEATHER_ICONS[day.weatherIcon] ?? '\u2600\uFE0F') : '\uD83D\uDD12'}
+                {unlocked ? (WEATHER_ICONS[day.weatherIcon] ?? '☀️') : '🔒'}
               </Text>
               <Text style={[styles.seaTemp, !unlocked && styles.dimmed]}>
-                {unlocked ? `${day.seaTemp ?? '\u2014'}\u00b0` : '\u2014'}
+                {unlocked ? `${day.seaTemp ?? '--'}°` : '--'}
               </Text>
               <Text style={[styles.airTemp, !unlocked && styles.dimmed]}>
-                {unlocked ? `${day.airTemp}\u00b0` : '\u2014'}
+                {unlocked ? `${Math.round(day.airTemp)}°` : '--'}
               </Text>
               <Text style={[styles.wind, !unlocked && styles.dimmed]}>
-                {unlocked ? `${day.windSpeed}` : ''}
+                {unlocked ? `${Math.round(day.windSpeed)}` : ''}
               </Text>
             </TouchableOpacity>
           );
@@ -60,7 +60,7 @@ export function ForecastRow({ forecast, onUnlockDay }: Props) {
       {!isPremium && (
         <TouchableOpacity style={styles.unlockBtn} onPress={() => onUnlockDay('')}>
           <Text style={styles.unlockText}>
-            {t('ads.watchToUnlock')} \u00b7 {t('ads.orPremium')}
+            {t('ads.watchToUnlock')} · {t('ads.orPremium')}
           </Text>
         </TouchableOpacity>
       )}
@@ -69,30 +69,36 @@ export function ForecastRow({ forecast, onUnlockDay }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: '#132238', borderRadius: 8, padding: 10 },
-  title: { fontSize: 10, color: '#6b8aaa', textTransform: 'uppercase', marginBottom: 8 },
+  title: {
+    fontSize: 11,
+    color: '#888',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
   row: { flexDirection: 'row', gap: 4 },
   day: {
     flex: 1,
-    backgroundColor: '#1a2d47',
-    borderRadius: 6,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 10,
     padding: 6,
     alignItems: 'center',
   },
-  locked: { opacity: 0.3 },
-  dayLabel: { fontSize: 10, color: '#6b8aaa' },
+  locked: { opacity: 0.35 },
+  dayLabel: { fontSize: 10, color: '#888', fontWeight: '500' },
   icon: { fontSize: 16, marginVertical: 2 },
-  seaTemp: { fontSize: 12, fontWeight: '700', color: '#06b6d4' },
-  airTemp: { fontSize: 9, color: '#f59e0b' },
-  wind: { fontSize: 8, color: '#a5b4c4' },
-  dimmed: { color: '#444' },
+  seaTemp: { fontSize: 12, fontWeight: '700', color: '#0077b6' },
+  airTemp: { fontSize: 9, color: '#f59e0b', fontWeight: '600' },
+  wind: { fontSize: 8, color: '#888' },
+  dimmed: { color: '#ccc' },
   unlockBtn: {
-    marginTop: 8,
+    marginTop: 10,
     alignSelf: 'center',
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#0077b6',
     paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 14,
   },
-  unlockText: { fontSize: 11, color: '#fff' },
+  unlockText: { fontSize: 11, color: '#fff', fontWeight: '600' },
 });

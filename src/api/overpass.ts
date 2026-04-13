@@ -6,17 +6,36 @@ import type { Beach, BeachTags, Amenities, Restaurant, Coordinates } from '../ty
 // Query builders
 // ---------------------------------------------------------------------------
 
+// Nearby search: beaches + lakes + swimming areas (smaller radius OK)
 export function buildBeachQuery(lat: number, lng: number, radius: number): string {
-  return `
-[out:json][timeout:25];
+  // For large radius (>100km), only search ocean/river beaches to avoid timeout
+  const timeout = radius > 100000 ? 45 : 30;
+  const limit = radius > 100000 ? 30 : 30;
+
+  if (radius > 100000) {
+    return `
+[out:json][timeout:${timeout}];
 (
   node["natural"="beach"](around:${radius},${lat},${lng});
   way["natural"="beach"](around:${radius},${lat},${lng});
-  relation["natural"="beach"](around:${radius},${lat},${lng});
 );
-out body center;
->;
-out skel qt;
+out body center ${limit};
+`.trim();
+  }
+
+  // For nearby search, include swimming areas and bathing places
+  return `
+[out:json][timeout:${timeout}];
+(
+  node["natural"="beach"](around:${radius},${lat},${lng});
+  way["natural"="beach"](around:${radius},${lat},${lng});
+  node["leisure"="swimming_area"](around:${radius},${lat},${lng});
+  way["leisure"="swimming_area"](around:${radius},${lat},${lng});
+  node["leisure"="bathing_place"](around:${radius},${lat},${lng});
+  way["leisure"="bathing_place"](around:${radius},${lat},${lng});
+  node["leisure"="water_park"](around:${radius},${lat},${lng});
+);
+out body center ${limit};
 `.trim();
 }
 
@@ -68,8 +87,13 @@ export function parseOverpassBeaches(
   userLng: number,
 ): Beach[] {
   const beaches: Beach[] = [];
+  const seen = new Set<string>();
 
   for (const el of response.elements) {
+    // Deduplicate (same element can match both natural=beach and leisure=beach)
+    const uid = `${el.type}/${el.id}`;
+    if (seen.has(uid)) continue;
+    seen.add(uid);
     // Resolve coordinates — nodes have lat/lon directly; ways/relations use center
     const lat = el.lat ?? el.center?.lat;
     const lng = el.lon ?? el.center?.lon;
@@ -77,7 +101,21 @@ export function parseOverpassBeaches(
     if (lat === undefined || lng === undefined) continue;
 
     const tags = el.tags ?? {};
-    const name = tags['name'] ?? tags['name:en'] ?? 'Unknown Beach';
+    const rawName = tags['name'] ?? tags['name:fr'] ?? tags['name:en'] ?? null;
+    const city = tags['addr:city'] ?? tags['addr:town'] ?? tags['addr:municipality'] ?? tags['is_in'] ?? null;
+    const waterName = tags['water:name'] ?? tags['lake:name'] ?? null;
+    const isSwimmingArea = tags['leisure'] === 'swimming_area' || tags['leisure'] === 'bathing_place';
+    const isLake = tags['water'] === 'lake' || tags['water'] === 'reservoir';
+    const isWaterPark = tags['leisure'] === 'water_park';
+    const name = rawName
+      ?? (waterName ? (isSwimmingArea ? `Baignade ${waterName}` : waterName) : null)
+      ?? (city && isLake ? `Lac de ${city}` : null)
+      ?? (city && isSwimmingArea ? `Baignade de ${city}` : null)
+      ?? (city && isWaterPark ? `Parc aquatique de ${city}` : null)
+      ?? (city ? `Plage de ${city}` : null)
+      ?? (isLake ? `Plan d'eau #${beaches.length + 1}` : null)
+      ?? (isSwimmingArea ? `Zone de baignade #${beaches.length + 1}` : null)
+      ?? `Plage #${beaches.length + 1}`;
 
     const blueFlag =
       tags['award'] === 'blue_flag' ||
@@ -101,12 +139,6 @@ export function parseOverpassBeaches(
     if (rawSurface === 'sand') surface = 'sand';
     else if (rawSurface === 'pebbles' || rawSurface === 'pebble') surface = 'pebble';
     else if (rawSurface === 'rock' || rawSurface === 'rocks') surface = 'rock';
-
-    const city =
-      tags['addr:city'] ??
-      tags['addr:town'] ??
-      tags['addr:municipality'] ??
-      null;
 
     const distance = haversineDistance(userLat, userLng, lat, lng);
 

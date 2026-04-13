@@ -42,11 +42,11 @@ export function AmenityTags({ amenities, tags, restaurantCount, compact = false 
 const styles = StyleSheet.create({
   container: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
   tag: {
-    backgroundColor: '#1e3a5f',
+    backgroundColor: '#e0f7ff',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
   },
   tagCompact: { paddingHorizontal: 5 },
-  tagText: { fontSize: 10, color: '#a5b4c4' },
+  tagText: { fontSize: 10, color: '#0077b6' },
 });

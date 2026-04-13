@@ -97,10 +97,68 @@ export async function fetchCurrentWeather(lat: number, lng: number): Promise<Wea
   return parseCurrentWeather(data);
 }
 
+// Free 5-day/3-hour forecast API (2.5) — aggregated to daily
+interface OWMForecast25Entry {
+  dt: number;
+  main: { temp: number; feels_like: number };
+  wind: { speed: number; deg: number };
+  weather: Array<{ icon: string; description: string }>;
+  dt_txt: string;
+}
+
+interface OWMForecast25Response {
+  list: OWMForecast25Entry[];
+}
+
+function aggregateDailyForecast(entries: OWMForecast25Entry[]): ForecastDay[] {
+  const byDate = new Map<string, OWMForecast25Entry[]>();
+  for (const e of entries) {
+    const date = e.dt_txt.split(' ')[0];
+    if (!byDate.has(date)) byDate.set(date, []);
+    byDate.get(date)!.push(e);
+  }
+
+  const days: ForecastDay[] = [];
+  for (const [date, group] of byDate) {
+    // Pick the midday entry (12:00) or the middle entry as representative
+    const midday = group.find((e) => e.dt_txt.includes('12:00')) ?? group[Math.floor(group.length / 2)];
+    const maxTemp = Math.max(...group.map((e) => e.main.temp));
+    const avgWind = group.reduce((s, e) => s + e.wind.speed, 0) / group.length;
+
+    days.push({
+      date,
+      airTemp: Math.round(maxTemp),
+      seaTemp: null,
+      windSpeed: Math.round(avgWind * 3.6),
+      weatherIcon: midday.weather[0]?.icon ?? '',
+      weatherDesc: midday.weather[0]?.description ?? '',
+    });
+  }
+
+  return days.slice(0, 6);
+}
+
 export async function fetchForecast(
   lat: number,
   lng: number,
 ): Promise<{ weather: WeatherData; forecast: ForecastDay[] }> {
+  // Try free 5-day forecast API first
+  const freeUrl = new URL(API.OWM_FORECAST_URL);
+  freeUrl.searchParams.set('lat', String(lat));
+  freeUrl.searchParams.set('lon', String(lng));
+  freeUrl.searchParams.set('units', 'metric');
+  freeUrl.searchParams.set('appid', OWM_API_KEY ?? '');
+
+  const freeRes = await fetch(freeUrl.toString());
+  if (freeRes.ok) {
+    const data = (await freeRes.json()) as OWMForecast25Response;
+    const forecast = aggregateDailyForecast(data.list);
+    // Also fetch current weather for the WeatherData
+    const weather = await fetchCurrentWeather(lat, lng);
+    return { weather, forecast };
+  }
+
+  // Fallback to OneCall 3.0 if available
   const url = new URL(API.OWM_ONECALL_URL);
   url.searchParams.set('lat', String(lat));
   url.searchParams.set('lon', String(lng));
@@ -110,11 +168,10 @@ export async function fetchForecast(
 
   const response = await fetch(url.toString());
   if (!response.ok) {
-    throw new Error(`OpenWeatherMap One Call error: ${response.status} ${response.statusText}`);
+    throw new Error(`OpenWeatherMap forecast error: ${response.status}`);
   }
 
   const data = (await response.json()) as OWMOneCallResponse;
-
   const weather = parseCurrentWeather(data.current);
   const forecast = parseForecast(data.daily);
 

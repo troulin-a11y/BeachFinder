@@ -30,7 +30,7 @@ export function useLocation(): UseLocationResult {
         }
 
         const loc = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
+          accuracy: Location.Accuracy.High,
         });
 
         if (!cancelled) {

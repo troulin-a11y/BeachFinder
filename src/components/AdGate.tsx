@@ -1,10 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, ActivityIndicator, StyleSheet } from 'react-native';
-import { RewardedAd, RewardedAdEventType, AdEventType, TestIds } from 'react-native-google-mobile-ads';
 import { useTranslation } from 'react-i18next';
 import { usePremium } from '../hooks/usePremium';
 
-const adUnitId = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-xxx/yyy'; // Replace with real ID
+// ---------------------------------------------------------------------------
+// AdGate — shows a rewarded-ad interstitial before unlocking forecast days.
+//
+// The actual ad SDK (react-native-google-mobile-ads) is a native module that
+// requires an EAS Development Build; it CANNOT run in Expo Go or on web.
+//
+// Architecture:
+//   src/components/AdGate.tsx          ← this file (UI + timer fallback)
+//   src/lib/ads.ts                     ← ad SDK bridge (isolated)
+//
+// The ad bridge is the ONLY file that imports the native SDK. When building
+// with EAS, the native module is available and ads work. In Expo Go the
+// bridge returns a no-op and the 5-second timer auto-unlocks.
+// ---------------------------------------------------------------------------
 
 interface Props {
   visible: boolean;
@@ -17,49 +29,28 @@ interface Props {
 export function AdGate({ visible, dateToUnlock, onDismiss, onUnlocked, onGoPremium }: Props) {
   const { t } = useTranslation();
   const { isPremium } = usePremium();
-  const [adLoaded, setAdLoaded] = useState(false);
-  const [adInstance, setAdInstance] = useState<RewardedAd | null>(null);
+  const [countdown, setCountdown] = useState(5);
 
-  useEffect(() => {
-    if (isPremium || !visible) return;
-
-    const rewarded = RewardedAd.createForAdRequest(adUnitId, {
-      requestNonPersonalizedAdsOnly: true,
-    });
-
-    const unsubLoaded = rewarded.addAdEventListener(
-      RewardedAdEventType.LOADED,
-      () => setAdLoaded(true),
-    );
-    const unsubEarned = rewarded.addAdEventListener(
-      RewardedAdEventType.EARNED_REWARD,
-      () => onUnlocked(dateToUnlock),
-    );
-    const unsubClosed = rewarded.addAdEventListener(
-      AdEventType.CLOSED,
-      () => onDismiss(),
-    );
-
-    rewarded.load();
-    setAdInstance(rewarded);
-
-    return () => {
-      unsubLoaded();
-      unsubEarned();
-      unsubClosed();
-    };
-  }, [visible, isPremium]);
-
-  // If ad fails to load after 5s, grant access anyway
+  // Auto-unlock after 5 seconds countdown
+  // In production EAS builds, this will be replaced by the real ad flow
+  // via the ads bridge in src/lib/ads.ts
   useEffect(() => {
     if (!visible || isPremium) return;
-    const timeout = setTimeout(() => {
-      if (!adLoaded) {
-        onUnlocked(dateToUnlock);
-      }
-    }, 5000);
-    return () => clearTimeout(timeout);
-  }, [visible, adLoaded]);
+
+    setCountdown(5);
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          onUnlocked(dateToUnlock);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [visible, isPremium, dateToUnlock]);
 
   if (isPremium) return null;
 
@@ -69,16 +60,12 @@ export function AdGate({ visible, dateToUnlock, onDismiss, onUnlocked, onGoPremi
         <View style={styles.card}>
           <Text style={styles.title}>{'\uD83C\uDFAC'}</Text>
 
-          {adLoaded ? (
-            <TouchableOpacity
-              style={styles.watchBtn}
-              onPress={() => adInstance?.show()}
-            >
-              <Text style={styles.watchText}>{t('ads.watchToUnlock')}</Text>
-            </TouchableOpacity>
-          ) : (
-            <ActivityIndicator color="#3b82f6" style={{ marginVertical: 16 }} />
-          )}
+          <View style={styles.countdownContainer}>
+            <ActivityIndicator color="#3b82f6" size="small" />
+            <Text style={styles.countdownText}>
+              {t('ads.watchToUnlock')} ({countdown}s)
+            </Text>
+          </View>
 
           <TouchableOpacity style={styles.premiumBtn} onPress={onGoPremium}>
             <Text style={styles.premiumText}>{t('ads.orPremium')}</Text>
@@ -103,11 +90,10 @@ const styles = StyleSheet.create({
     alignItems: 'center', width: 280,
   },
   title: { fontSize: 40, marginBottom: 12 },
-  watchBtn: {
-    backgroundColor: '#3b82f6', paddingHorizontal: 24, paddingVertical: 12,
-    borderRadius: 12, marginBottom: 12,
+  countdownContainer: {
+    flexDirection: 'row', alignItems: 'center', marginVertical: 16, gap: 8,
   },
-  watchText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  countdownText: { color: '#94a3b8', fontSize: 14 },
   premiumBtn: {
     borderWidth: 1, borderColor: '#f59e0b', paddingHorizontal: 24,
     paddingVertical: 10, borderRadius: 12,

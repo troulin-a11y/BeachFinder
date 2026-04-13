@@ -14,11 +14,13 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#3b82f6',
-        tabBarInactiveTintColor: '#6b8aaa',
+        tabBarActiveTintColor: '#0077b6',
+        tabBarInactiveTintColor: '#999',
         tabBarStyle: {
-          backgroundColor: '#0d1d33',
-          borderTopColor: '#1e3a5f',
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          borderTopColor: 'rgba(0,0,0,0.05)',
+          height: 85,
+          paddingTop: 10,
         },
       }}
     >
@@ -32,8 +34,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="search"
         options={{
-          title: t('search.title'),
-          tabBarIcon: () => <TabIcon emoji={'\uD83D\uDD0D'} />,
+          title: 'Carte',
+          tabBarIcon: () => <TabIcon emoji={'\uD83D\uDDFA\uFE0F'} />,
         }}
       />
       <Tabs.Screen

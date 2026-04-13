@@ -160,6 +160,20 @@ export async function fetchSeaTemperature(
     if (noaaResult) return noaaResult;
   }
 
-  // 3. Copernicus will be handled by the edge function; return null for now
+  // 3. Open-Meteo Marine API — free, no key, works globally
+  try {
+    const url = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lng}&current=sea_surface_temperature`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const json = await res.json() as { current?: { sea_surface_temperature?: number } };
+      const sst = json.current?.sea_surface_temperature;
+      if (typeof sst === 'number' && sst > -5 && sst < 45) {
+        return { temperature: sst, source: 'copernicus' };
+      }
+    }
+  } catch {
+    // Open-Meteo unavailable
+  }
+
   return null;
 }
